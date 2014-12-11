@@ -301,7 +301,7 @@ pic_lib_define_library(pic_state *pic)
 {
   struct pic_lib *prev = pic->lib;
   size_t argc, i;
-  pic_value spec, *argv;
+  pic_value spec, *argv, v, exports = pic_nil_value();
 
   pic_get_args(pic, "o*", &spec, &argc, &argv);
 
@@ -311,7 +311,14 @@ pic_lib_define_library(pic_state *pic)
     pic_in_library(pic, spec);
 
     for (i = 0; i < argc; ++i) {
-      pic_void(pic_eval(pic, argv[i], pic->lib));
+      if(pic_sym(pic_car(pic, argv[i])) == pic->sEXPORT){
+        exports = pic_cons(pic, argv[i], exports);
+      }
+      else
+        pic_void(pic_eval(pic, argv[i], pic->lib));
+    }
+    pic_for_each(v, exports){
+      pic_void(pic_eval(pic, v, pic->lib));
     }
 
     pic_in_library(pic, prev->name);
